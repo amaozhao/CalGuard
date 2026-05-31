@@ -1,0 +1,22 @@
+[package]
+name = "calguard-desktop"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "calguard_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "calguard-desktop"
+path = "src/main.rs"
+
+[dependencies]
+calguard-tauri = { path = "../../../crates/calguard-tauri" }
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+
+[build-dependencies]
+tauri-build.workspace = true

@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible CalGuard defect.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the calendar source type and fixture if relevant.
+      placeholder: |
+        1. Open CalGuard
+        2. Import fixtures/simple.ics
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Paste relevant logs or attach screenshots. Redact calendar details if needed.
+    validations:
+      required: false

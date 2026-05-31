@@ -1,0 +1,18 @@
+[package]
+name = "calguard-tauri"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+calguard-core = { path = "../calguard-core" }
+calguard-store = { path = "../calguard-store" }
+calguard-sync = { path = "../calguard-sync" }
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tauri.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+uuid.workspace = true

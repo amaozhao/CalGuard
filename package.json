@@ -1,0 +1,17 @@
+{
+  "name": "calguard-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "pnpm --filter @calguard/desktop build",
+    "dev": "pnpm --filter @calguard/desktop dev",
+    "generate:icon": "node scripts/generate-icon.mjs",
+    "lint": "pnpm --filter @calguard/desktop lint",
+    "test": "pnpm --filter @calguard/desktop test",
+    "test:rust": "cargo test --workspace"
+  },
+  "packageManager": "pnpm@11.1.2",
+  "pnpm": {
+    "onlyBuiltDependencies": ["sharp"]
+  }
+}

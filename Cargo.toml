@@ -1,0 +1,33 @@
+[workspace]
+members = [
+  "crates/calguard-core",
+  "crates/calguard-store",
+  "crates/calguard-sync",
+  "crates/calguard-tauri",
+  "apps/desktop/src-tauri",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/amaozhao/CalGuard"
+
+[workspace.dependencies]
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10"
+reqwest = { version = "0.12", default-features = false, features = ["charset", "http2", "json", "rustls-tls"] }
+rusqlite = { version = "0.33", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tauri = { version = "2", features = [] }
+tauri-build = "2"
+tauri-plugin-dialog = "2"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+tracing = "0.1"
+url = "2"
+uuid = { version = "1", features = ["serde", "v4"] }
