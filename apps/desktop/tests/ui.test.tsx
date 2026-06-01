@@ -8,6 +8,7 @@ import SettingsPage from '../app/settings/page';
 import SourcesPage from '../app/sources/page';
 import FreeTimePage from '../app/free-time/page';
 import { addBrowserSource, resetBrowserState } from '../lib/mock-data';
+import { LanguageProvider } from '../lib/i18n';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -16,6 +17,7 @@ vi.mock('next/navigation', () => ({
 describe('desktop UI', () => {
   beforeEach(() => {
     resetBrowserState();
+    window.localStorage.clear();
   });
 
   it('shows dashboard empty state without calendar sources', async () => {
@@ -30,7 +32,8 @@ describe('desktop UI', () => {
     render(<DashboardView />);
 
     expect(await screen.findByText('Health Score')).toBeInTheDocument();
-    expect(screen.getByText('72')).toBeInTheDocument();
+    expect(screen.getAllByText('72')).toHaveLength(2);
+    expect(screen.getByLabelText('Calendar health chart')).toBeInTheDocument();
     expect(screen.getByText('Top Risks')).toBeInTheDocument();
   });
 
@@ -78,5 +81,38 @@ describe('desktop UI', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('Settings saved')).toBeInTheDocument();
+  });
+
+  it('switches settings page copy to Chinese', async () => {
+    render(
+      <LanguageProvider>
+        <SettingsPage />
+      </LanguageProvider>,
+    );
+
+    await userEvent.selectOptions(await screen.findByLabelText('Language'), 'zh');
+
+    expect(await screen.findByRole('heading', { name: '设置' })).toBeInTheDocument();
+    expect(screen.getByLabelText('语言')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '保存' })).toBeInTheDocument();
+  });
+
+  it('switches app content from the settings language selector', async () => {
+    addBrowserSource('Work', 'local_ics_file');
+    render(
+      <LanguageProvider>
+        <SettingsPage />
+        <DashboardView />
+      </LanguageProvider>,
+    );
+
+    expect(await screen.findByText('Health Score')).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText('Language'), 'zh');
+
+    expect(await screen.findByRole('heading', { name: '设置' })).toBeInTheDocument();
+    expect(screen.getByText('健康评分')).toBeInTheDocument();
+    expect(screen.getByText('主要风险')).toBeInTheDocument();
+    expect(screen.getByText(/中级冲突/)).toBeInTheDocument();
+    expect(screen.getByText('建议')).toBeInTheDocument();
   });
 });

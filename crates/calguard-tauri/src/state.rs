@@ -16,14 +16,6 @@ impl AppState {
         })
     }
 
-    pub fn in_memory() -> Result<Self, AppError> {
-        let database = Database::in_memory().map_err(AppError::db)?;
-        let repository = Repository::new(database).map_err(AppError::db)?;
-        Ok(Self {
-            repository: Mutex::new(repository),
-        })
-    }
-
     pub fn with_repository<T>(
         &self,
         f: impl FnOnce(&Repository) -> Result<T, AppError>,

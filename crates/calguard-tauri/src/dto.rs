@@ -2,7 +2,7 @@ use calguard_core::{
     AnalysisReport, AnalysisSettings, CalendarSource, Conflict, EventInstance, ExportFormat,
     FocusMetrics, FreeBlock, OverloadedDay, ReportPrivacyOptions, ScoreReason, Suggestion,
 };
-use chrono::{Duration, NaiveTime, Utc};
+use chrono::NaiveTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -84,29 +84,6 @@ pub struct AnalysisReportDto {
     pub overloaded_days: Vec<OverloadedDayDto>,
     pub focus_metrics: FocusMetricsDto,
     pub suggestions: Vec<SuggestionDto>,
-}
-
-impl AnalysisReportDto {
-    pub fn empty(range_days: u32) -> Self {
-        let now = Utc::now();
-        Self {
-            schema_version: "calguard.analysis.v1".to_string(),
-            period_start: now.to_rfc3339(),
-            period_end: (now + Duration::days(range_days as i64)).to_rfc3339(),
-            generated_at: now.to_rfc3339(),
-            score: ScoreDto {
-                score: 100,
-                grade: "Excellent".to_string(),
-                positive_reasons: vec!["No active calendar sources yet".to_string()],
-                negative_reasons: Vec::new(),
-            },
-            conflicts: Vec::new(),
-            free_blocks: Vec::new(),
-            overloaded_days: Vec::new(),
-            focus_metrics: FocusMetricsDto::default(),
-            suggestions: Vec::new(),
-        }
-    }
 }
 
 impl From<AnalysisReport> for AnalysisReportDto {
@@ -240,7 +217,7 @@ impl From<OverloadedDay> for OverloadedDayDto {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FocusMetricsDto {
     pub deep_work_blocks: usize,
     pub focus_minutes: i64,
@@ -294,25 +271,6 @@ pub struct SettingsDto {
     pub min_focus_minutes: i64,
     pub overload_meeting_minutes: i64,
     pub severe_overload_meeting_minutes: i64,
-    pub privacy_export_default: bool,
-}
-
-impl Default for SettingsDto {
-    fn default() -> Self {
-        Self {
-            range_days: 14,
-            timezone: "UTC".to_string(),
-            workdays: vec![1, 2, 3, 4, 5],
-            work_start: "09:00".to_string(),
-            work_end: "18:00".to_string(),
-            lunch_start: "12:00".to_string(),
-            lunch_end: "13:00".to_string(),
-            min_focus_minutes: 90,
-            overload_meeting_minutes: 300,
-            severe_overload_meeting_minutes: 420,
-            privacy_export_default: false,
-        }
-    }
 }
 
 impl TryFrom<SettingsDto> for AnalysisSettings {
@@ -352,7 +310,6 @@ impl From<AnalysisSettings> for SettingsDto {
             min_focus_minutes: settings.min_focus_minutes,
             overload_meeting_minutes: settings.overload_meeting_minutes,
             severe_overload_meeting_minutes: settings.severe_overload_meeting_minutes,
-            privacy_export_default: false,
         }
     }
 }

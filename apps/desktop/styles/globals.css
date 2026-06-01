@@ -217,6 +217,220 @@ h2 {
   line-height: 1;
 }
 
+.health-chart {
+  display: grid;
+  grid-template-columns: minmax(270px, 1.05fr) minmax(360px, 1.4fr) minmax(220px, 0.8fr);
+  gap: 18px;
+  align-items: stretch;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.10), transparent 34%),
+    linear-gradient(315deg, rgba(37, 99, 235, 0.12), transparent 40%),
+    var(--surface);
+}
+
+.health-chart-main,
+.load-chart,
+.risk-stack {
+  min-width: 0;
+}
+
+.health-chart-main {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.score-ring {
+  position: relative;
+  width: 132px;
+  height: 132px;
+}
+
+.score-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-ring circle {
+  fill: none;
+  stroke-width: 12;
+}
+
+.score-ring-track {
+  stroke: #e5eaf2;
+}
+
+.score-ring-value {
+  stroke: #0f766e;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 180ms ease;
+}
+
+.score-warn .score-ring-value {
+  stroke: #d97706;
+}
+
+.score-bad .score-ring-value {
+  stroke: #dc2626;
+}
+
+.score-ring-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.score-ring-label strong {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.score-ring-label span,
+.chart-summary,
+.chart-heading span,
+.load-day small {
+  color: var(--muted);
+}
+
+.eyebrow {
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.health-chart-main h2 {
+  margin: 4px 0 8px;
+  font-size: 24px;
+}
+
+.chart-summary {
+  line-height: 1.45;
+}
+
+.focus-meter {
+  height: 9px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5eaf2;
+}
+
+.focus-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #0f766e);
+}
+
+.chart-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.chart-heading h2 {
+  margin: 0;
+}
+
+.load-bars {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+  min-height: 154px;
+}
+
+.load-day {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 6px;
+  min-width: 0;
+  text-align: center;
+}
+
+.load-bar-shell {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  min-height: 104px;
+  border-radius: 8px;
+  background: #edf2f7;
+  overflow: hidden;
+}
+
+.load-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 8px 8px 0 0;
+}
+
+.load-ok {
+  background: linear-gradient(180deg, #14b8a6, #0f766e);
+}
+
+.load-warn {
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+}
+
+.load-bad {
+  background: linear-gradient(180deg, #ef4444, #b91c1c);
+}
+
+.load-day strong {
+  font-size: 12px;
+}
+
+.load-day small {
+  font-size: 11px;
+}
+
+.risk-stack {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.risk-token {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fbfcfe;
+}
+
+.risk-token span {
+  min-width: 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.risk-token strong {
+  font-size: 22px;
+}
+
+.risk-ok strong {
+  color: var(--ok);
+}
+
+.risk-warn strong {
+  color: var(--warn);
+}
+
+.risk-bad strong {
+  color: var(--bad);
+}
+
 .panel {
   padding: 18px;
   min-width: 0;
@@ -432,7 +646,9 @@ select {
   }
 
   .page-header,
-  .content-grid {
+  .content-grid,
+  .health-chart,
+  .health-chart-main {
     grid-template-columns: 1fr;
     display: grid;
   }

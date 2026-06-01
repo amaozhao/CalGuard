@@ -82,7 +82,6 @@ export type SettingsDto = {
   min_focus_minutes: number;
   overload_meeting_minutes: number;
   severe_overload_meeting_minutes: number;
-  privacy_export_default: boolean;
 };
 
 export type ExportPrivacyDto = {

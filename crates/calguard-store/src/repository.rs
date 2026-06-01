@@ -29,10 +29,6 @@ impl Repository {
         Ok(Self { database })
     }
 
-    pub fn database(&self) -> &Database {
-        &self.database
-    }
-
     pub fn add_source(&self, mut source: CalendarSource) -> rusqlite::Result<CalendarSource> {
         if source.id.is_empty() {
             source.id = Uuid::new_v4().to_string();
@@ -174,31 +170,6 @@ impl Repository {
             ],
         )?;
         Ok(raw)
-    }
-
-    pub fn latest_raw_calendar(&self, source_id: &str) -> rusqlite::Result<Option<RawCalendar>> {
-        self.database
-            .connection()
-            .query_row(
-                r#"
-                SELECT id, source_id, raw_ics, content_hash, imported_at
-                FROM raw_calendars
-                WHERE source_id = ?1
-                ORDER BY imported_at DESC
-                LIMIT 1
-                "#,
-                params![source_id],
-                |row| {
-                    Ok(RawCalendar {
-                        id: row.get(0)?,
-                        source_id: row.get(1)?,
-                        raw_ics: row.get(2)?,
-                        content_hash: row.get(3)?,
-                        imported_at: parse_rfc3339(row.get::<_, String>(4)?)?,
-                    })
-                },
-            )
-            .optional()
     }
 
     pub fn replace_source_events(
@@ -587,7 +558,12 @@ mod tests {
         );
 
         repo.clear_cache().unwrap();
-        assert!(repo.latest_raw_calendar(&source.id).unwrap().is_none());
+        let raw_count: i64 = repo
+            .database
+            .connection()
+            .query_row("SELECT COUNT(*) FROM raw_calendars", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(raw_count, 0);
         assert!(repo.list_events(&[]).unwrap().is_empty());
         assert!(repo.get_source(&source.id).unwrap().is_some());
     }

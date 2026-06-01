@@ -6,10 +6,12 @@ import { analyzeCalendar, getSettings, ignoreConflict } from '../../lib/tauri';
 import type { AnalysisReportDto } from '../../lib/types';
 import { formatTimeRange } from '../../lib/format-date';
 import { StatusPill } from '../../components/common/StatusPill';
+import { translateTerm, useI18n } from '../../lib/i18n';
 
 const severities = ['All', 'Critical', 'High', 'Medium', 'Low'];
 
 export default function ConflictsPage() {
+  const { language, t } = useI18n();
   const [report, setReport] = useState<AnalysisReportDto | null>(null);
   const [severity, setSeverity] = useState('All');
 
@@ -28,13 +30,13 @@ export default function ConflictsPage() {
     <div className="page-stack">
       <header className="page-header">
         <div>
-          <h1>Conflicts</h1>
-          <p>{conflicts.length} active conflict(s)</p>
+          <h1>{t('conflicts')}</h1>
+          <p>{conflicts.length} {t('activeConflicts')}</p>
         </div>
         <div className="toolbar">
           {severities.map((item) => (
             <button key={item} className={severity === item ? 'segmented active' : 'segmented'} type="button" onClick={() => setSeverity(item)}>
-              {item}
+              {translateTerm(item, language)}
             </button>
           ))}
         </div>
@@ -46,28 +48,28 @@ export default function ConflictsPage() {
             <article key={conflict.id} className="row-card">
               <div>
                 <div className="row-title">
-                  <strong>{formatTimeRange(conflict.starts_at, conflict.ends_at)}</strong>
+                  <strong>{formatTimeRange(conflict.starts_at, conflict.ends_at, language)}</strong>
                   <StatusPill tone={conflict.severity === 'Critical' || conflict.severity === 'High' ? 'bad' : 'warn'}>
-                    {conflict.severity}
+                    {translateTerm(conflict.severity, language)}
                   </StatusPill>
                 </div>
-                <p>{conflict.event_titles.join(' overlaps ')}</p>
-                <p>Overlap: {conflict.overlap_minutes}m</p>
+                <p>{conflict.event_titles.join(language === 'zh' ? ' 与 ' : ' overlaps ')}</p>
+                <p>{t('overlap')}: {conflict.overlap_minutes}{language === 'zh' ? '分钟' : 'm'}</p>
               </div>
               <div className="row-actions">
                 <button className="button compact" type="button" onClick={() => navigator.clipboard?.writeText(`Review ${conflict.event_titles.join(' / ')}`)}>
-                  Copy
+                  {t('copy')}
                 </button>
                 <button className="button compact" type="button" onClick={async () => {
                   await ignoreConflict(conflict.id);
                   await load();
                 }}>
-                  Ignore
+                  {t('ignore')}
                 </button>
               </div>
             </article>
           ))}
-          {conflicts.length === 0 ? <p className="muted">No conflicts match the current filter.</p> : null}
+          {conflicts.length === 0 ? <p className="muted">{t('noConflictsMatchFilter')}</p> : null}
         </div>
       </section>
     </div>

@@ -3,9 +3,10 @@ use crate::error::AppError;
 use crate::state::AppState;
 use calguard_core::{
     analyze_calendar as analyze_core, parse_ics, render_json_report, render_markdown_report,
-    AnalysisInput, CalendarSource, CalendarSourceKind, ExportFormat, SyncStatus,
+    AnalysisInput, AnalysisReport, AnalysisSettings, CalendarSource, CalendarSourceKind,
+    ExportFormat, SyncStatus,
 };
-use calguard_store::repository::SourceUpdate;
+use calguard_store::{repository::SourceUpdate, Repository};
 use chrono::Utc;
 use std::fs;
 use std::time::Duration;
@@ -202,22 +203,7 @@ pub async fn analyze_calendar(
         let mut settings = repo.get_settings().map_err(AppError::db)?;
         settings.range_days = input.range_days;
         settings.timezone = input.timezone;
-        let events = repo.list_events(&input.source_ids).map_err(AppError::db)?;
-        let ignored = repo.list_ignored_hashes("conflict").map_err(AppError::db)?;
-        let enabled_source_ids = repo
-            .list_sources()
-            .map_err(AppError::db)?
-            .into_iter()
-            .filter(|source| source.enabled)
-            .map(|source| source.id)
-            .collect::<Vec<_>>();
-        let report = analyze_core(AnalysisInput {
-            events,
-            settings,
-            enabled_source_ids,
-            ignored_conflict_hashes: ignored,
-            generated_at: Utc::now(),
-        });
+        let report = build_analysis_report(repo, settings, &input.source_ids)?;
         Ok(AnalysisReportDto::from(report))
     })
 }
@@ -251,32 +237,15 @@ pub async fn export_report(
     state.with_repository(|repo| {
         let mut settings = repo.get_settings().map_err(AppError::db)?;
         settings.range_days = input.range_days;
-        let events = repo.list_events(&[]).map_err(AppError::db)?;
-        let ignored = repo.list_ignored_hashes("conflict").map_err(AppError::db)?;
-        let enabled_source_ids = repo
-            .list_sources()
-            .map_err(AppError::db)?
-            .into_iter()
-            .filter(|source| source.enabled)
-            .map(|source| source.id)
-            .collect::<Vec<_>>();
-        let report = analyze_core(AnalysisInput {
-            events,
-            settings,
-            enabled_source_ids,
-            ignored_conflict_hashes: ignored,
-            generated_at: Utc::now(),
-        });
+        let report = build_analysis_report(repo, settings, &[])?;
         let format = export_format(&input.format)?;
         let privacy_mode = !input.privacy.include_event_titles || !input.privacy.include_locations;
+        let privacy = input.privacy.into();
         let body = match format {
-            ExportFormat::Markdown => {
-                render_markdown_report(&report, &input.privacy.clone().into())
-            }
-            ExportFormat::Json => render_json_report(&report, &input.privacy.clone().into())
-                .map_err(|err| {
-                    AppError::new("EXPORT_FAILED", "导出报告失败。", Some(err.to_string()))
-                })?,
+            ExportFormat::Markdown => render_markdown_report(&report, &privacy),
+            ExportFormat::Json => render_json_report(&report, &privacy).map_err(|err| {
+                AppError::new("EXPORT_FAILED", "导出报告失败。", Some(err.to_string()))
+            })?,
         };
         fs::write(&input.file_path, body.as_bytes()).map_err(|err| {
             AppError::new("EXPORT_FAILED", "导出报告失败。", Some(err.to_string()))
@@ -310,6 +279,29 @@ pub async fn ignore_item(
 #[tauri::command]
 pub async fn clear_cache(state: State<'_, AppState>) -> Result<(), AppError> {
     state.with_repository(|repo| repo.clear_cache().map_err(AppError::db))
+}
+
+fn build_analysis_report(
+    repo: &Repository,
+    settings: AnalysisSettings,
+    source_ids: &[String],
+) -> Result<AnalysisReport, AppError> {
+    let events = repo.list_events(source_ids).map_err(AppError::db)?;
+    let ignored = repo.list_ignored_hashes("conflict").map_err(AppError::db)?;
+    let enabled_source_ids = repo
+        .list_sources()
+        .map_err(AppError::db)?
+        .into_iter()
+        .filter(|source| source.enabled)
+        .map(|source| source.id)
+        .collect::<Vec<_>>();
+    Ok(analyze_core(AnalysisInput {
+        events,
+        settings,
+        enabled_source_ids,
+        ignored_conflict_hashes: ignored,
+        generated_at: Utc::now(),
+    }))
 }
 
 fn import_source(

@@ -1,16 +1,21 @@
+'use client';
+
 import Link from 'next/link';
+import { useI18n } from '../../lib/i18n';
 
 export function EmptyState() {
+  const { t } = useI18n();
+
   return (
     <section className="empty-state">
-      <h2>No calendar sources</h2>
-      <p>Your calendar data stays on this device by default.</p>
+      <h2>{t('noCalendarSources')}</h2>
+      <p>{t('yourCalendarDataDevice')}</p>
       <div className="actions">
         <Link className="button primary" href="/onboarding/">
-          Import .ics File
+          {t('importIcsFile')}
         </Link>
         <Link className="button" href="/sources/">
-          Add ICS URL
+          {t('addIcsUrl')}
         </Link>
       </div>
     </section>

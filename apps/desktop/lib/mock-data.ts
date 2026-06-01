@@ -1,6 +1,6 @@
 import type { AnalysisReportDto, CalendarSourceDto, SettingsDto } from './types';
 
-export const defaultSettings: SettingsDto = {
+const defaultSettings: SettingsDto = {
   range_days: 14,
   timezone: 'UTC',
   workdays: [1, 2, 3, 4, 5],
@@ -11,7 +11,6 @@ export const defaultSettings: SettingsDto = {
   min_focus_minutes: 90,
   overload_meeting_minutes: 300,
   severe_overload_meeting_minutes: 420,
-  privacy_export_default: false,
 };
 
 let browserSources: CalendarSourceDto[] = [];

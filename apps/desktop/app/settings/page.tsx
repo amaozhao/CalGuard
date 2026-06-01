@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { clearCache, getSettings, updateSettings } from '../../lib/tauri';
 import type { SettingsDto } from '../../lib/types';
+import { formatDayCount, translateReportText, useI18n } from '../../lib/i18n';
 
 export default function SettingsPage() {
+  const { language, setLanguage, t } = useI18n();
   const [settings, setSettings] = useState<SettingsDto | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -19,14 +21,14 @@ export default function SettingsPage() {
   }
 
   if (!settings) {
-    return <section className="panel">Loading settings...</section>;
+    return <section className="panel">{t('loadingSettings')}</section>;
   }
 
   return (
     <div className="page-stack narrow">
       <header className="page-header">
         <div>
-          <h1>Settings</h1>
+          <h1>{t('settings')}</h1>
           <p>{settings.timezone}</p>
         </div>
       </header>
@@ -34,26 +36,26 @@ export default function SettingsPage() {
       <section className="panel form-panel">
         <div className="form-grid">
           <label>
-            Language
-            <select defaultValue="en">
+            {t('language')}
+            <select value={language} onChange={(event) => setLanguage(event.target.value === 'zh' ? 'zh' : 'en')}>
               <option value="en">English</option>
               <option value="zh">中文</option>
             </select>
           </label>
           <label>
-            Timezone
+            {t('timezone')}
             <input value={settings.timezone} onChange={(event) => setSettings({ ...settings, timezone: event.target.value })} />
           </label>
           <label>
-            Range
+            {t('range')}
             <select value={settings.range_days} onChange={(event) => setSettings({ ...settings, range_days: Number(event.target.value) })}>
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
+              <option value={7}>{formatDayCount(7, language)}</option>
+              <option value={14}>{formatDayCount(14, language)}</option>
+              <option value={30}>{formatDayCount(30, language)}</option>
             </select>
           </label>
           <label>
-            Min focus
+            {t('minFocus')}
             <input
               type="number"
               value={settings.min_focus_minutes}
@@ -61,23 +63,23 @@ export default function SettingsPage() {
             />
           </label>
           <label>
-            Work start
+            {t('workStart')}
             <input type="time" value={settings.work_start} onChange={(event) => setSettings({ ...settings, work_start: event.target.value })} />
           </label>
           <label>
-            Work end
+            {t('workEnd')}
             <input type="time" value={settings.work_end} onChange={(event) => setSettings({ ...settings, work_end: event.target.value })} />
           </label>
           <label>
-            Lunch start
+            {t('lunchStart')}
             <input type="time" value={settings.lunch_start} onChange={(event) => setSettings({ ...settings, lunch_start: event.target.value })} />
           </label>
           <label>
-            Lunch end
+            {t('lunchEnd')}
             <input type="time" value={settings.lunch_end} onChange={(event) => setSettings({ ...settings, lunch_end: event.target.value })} />
           </label>
           <label>
-            Overload minutes
+            {t('overloadMinutes')}
             <input
               type="number"
               value={settings.overload_meeting_minutes}
@@ -85,7 +87,7 @@ export default function SettingsPage() {
             />
           </label>
           <label>
-            Severe overload
+            {t('severeOverload')}
             <input
               type="number"
               value={settings.severe_overload_meeting_minutes}
@@ -96,16 +98,16 @@ export default function SettingsPage() {
 
         <div className="toolbar">
           <button className="button primary" type="button" onClick={() => void save(settings)}>
-            Save
+            {t('save')}
           </button>
           <button className="button danger" type="button" onClick={async () => {
             await clearCache();
             setMessage('Local cache cleared');
           }}>
-            Clear Cache
+            {t('clearCache')}
           </button>
         </div>
-        {message ? <p className="success-text">{message}</p> : null}
+        {message ? <p className="success-text">{translateReportText(message, language)}</p> : null}
       </section>
     </div>
   );

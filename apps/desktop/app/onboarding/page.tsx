@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { addLocalIcsSource, addRemoteIcsSource, chooseIcsFile, getSettings, updateSettings } from '../../lib/tauri';
+import { CalendarSourceFields } from '../../components/sources/CalendarSourceFields';
+import { getSettings, updateSettings } from '../../lib/tauri';
+import { addCalendarSourceFromDraft, initialSourceDraft } from '../../lib/source-form';
+import { formatDayCount, translateReportText, useI18n } from '../../lib/i18n';
 
 export default function OnboardingPage() {
+  const { language, t } = useI18n();
   const router = useRouter();
-  const [name, setName] = useState('My Calendar');
-  const [mode, setMode] = useState<'local' | 'remote'>('local');
-  const [path, setPath] = useState('');
-  const [url, setUrl] = useState('');
+  const [name, setName] = useState(initialSourceDraft.name);
+  const [mode, setMode] = useState(initialSourceDraft.mode);
+  const [path, setPath] = useState(initialSourceDraft.path);
+  const [url, setUrl] = useState(initialSourceDraft.url);
   const [rangeDays, setRangeDays] = useState(14);
   const [workStart, setWorkStart] = useState('09:00');
   const [workEnd, setWorkEnd] = useState('18:00');
@@ -27,17 +31,7 @@ export default function OnboardingPage() {
         work_end: workEnd,
         min_focus_minutes: minFocus,
       });
-      if (mode === 'local') {
-        if (!path) {
-          throw new Error('Select an .ics file');
-        }
-        await addLocalIcsSource({ name, path, color: '#2563eb' });
-      } else {
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          throw new Error('Use an HTTP or HTTPS ICS URL');
-        }
-        await addRemoteIcsSource({ name, url, color: '#0f766e' });
-      }
+      await addCalendarSourceFromDraft({ name, mode, path, url });
       router.push('/dashboard/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Import failed');
@@ -49,76 +43,55 @@ export default function OnboardingPage() {
       <header className="page-header">
         <div>
           <h1>CalGuard</h1>
-          <p>Your calendar data stays on your device by default.</p>
+          <p>{t('yourCalendarDataDevice')}</p>
         </div>
       </header>
 
       <section className="panel form-panel">
-        <label>
-          Calendar name
-          <input value={name} onChange={(event) => setName(event.target.value)} />
-        </label>
-
-        <div className="segmented-row" role="group" aria-label="Import type">
-          <button className={mode === 'local' ? 'segmented active' : 'segmented'} type="button" onClick={() => setMode('local')}>
-            Local file
-          </button>
-          <button className={mode === 'remote' ? 'segmented active' : 'segmented'} type="button" onClick={() => setMode('remote')}>
-            Remote URL
-          </button>
-        </div>
-
-        {mode === 'local' ? (
-          <label>
-            Local file path
-            <div className="input-row">
-              <input value={path} onChange={(event) => setPath(event.target.value)} placeholder="/path/to/calendar.ics" />
-              <button
-                className="button"
-                type="button"
-                onClick={async () => {
-                  const selected = await chooseIcsFile();
-                  if (selected) setPath(selected);
-                }}
-              >
-                Browse
-              </button>
-            </div>
-          </label>
-        ) : (
-          <label>
-            Remote ICS URL
-            <input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://example.com/calendar.ics" />
-          </label>
-        )}
+        <CalendarSourceFields
+          name={name}
+          setName={setName}
+          mode={mode}
+          setMode={setMode}
+          path={path}
+          setPath={setPath}
+          url={url}
+          setUrl={setUrl}
+          modeControl="segmented"
+          nameLabel={t('calendarName')}
+          localLabel={t('localFilePath')}
+          remoteLabel={t('remoteIcsUrl')}
+          localPlaceholder="/path/to/calendar.ics"
+          remotePlaceholder="https://example.com/calendar.ics"
+        />
 
         <div className="form-grid">
           <label>
-            Range
+            {t('range')}
             <select value={rangeDays} onChange={(event) => setRangeDays(Number(event.target.value))}>
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
-              <option value={30}>30 days</option>
+              <option value={7}>{formatDayCount(7, language)}</option>
+              <option value={14}>{formatDayCount(14, language)}</option>
+              <option value={30}>{formatDayCount(30, language)}</option>
             </select>
           </label>
           <label>
-            Work start
+            {t('workStart')}
             <input type="time" value={workStart} onChange={(event) => setWorkStart(event.target.value)} />
           </label>
           <label>
-            Work end
+            {t('workEnd')}
             <input type="time" value={workEnd} onChange={(event) => setWorkEnd(event.target.value)} />
           </label>
           <label>
-            Focus target
+            {t('focusTarget')}
             <input type="number" min={30} max={240} value={minFocus} onChange={(event) => setMinFocus(Number(event.target.value))} />
           </label>
         </div>
 
-        {error ? <div className="error-banner">{error}</div> : null}
+        {error ? <div className="error-banner">{translateReportText(error, language)}</div> : null}
 
         <button className="button primary" type="button" onClick={() => void submit()}>
-          Generate Analysis
+          {t('generateAnalysis')}
         </button>
       </section>
     </div>
